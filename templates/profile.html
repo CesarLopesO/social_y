@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de {{ user.username }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .profile-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .profile-container h2 {
+            margin-bottom: 20px;
+        }
+
+        .profile-picture {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .username {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .profile-info {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="username">{{ user.username }}</div>
+        {% if user.profile_picture %}
+            <img src="{{ url_for('uploaded_file', filename=user.profile_picture) }}" alt="Foto de Perfil" class="profile-picture">
+        {% else %}
+            <img src="{{ url_for('static', filename='default-profile.png') }}" alt="Foto de Perfil Padrão" class="profile-picture">
+        {% endif %}
+        <div class="profile-info">
+            <p>Nome de usuário: {{ user.username }}</p>
+        </div>
+        <div>
+            <a href="/feed">Voltar ao Feed</a> | <a href="/logout">Logout</a>
+        </div>
+    </div>
+</body>
+</html>

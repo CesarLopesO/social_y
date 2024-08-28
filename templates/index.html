@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD com Flask e RethinkDB</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Gerenciar Pessoas</h1>
+
+<h2>Adicionar Pessoa</h2>
+<form id="addPersonForm">
+    <label for="name">Nome:</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="age">Idade:</label>
+    <input type="number" id="age" name="age" required>
+
+    <button type="submit">Adicionar</button>
+</form>
+
+<h2>Pessoas Cadastradas</h2>
+<table id="peopleTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Idade</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Os dados serão inseridos aqui pelo JavaScript -->
+    </tbody>
+</table>
+
+<script>
+// Função para buscar e exibir pessoas
+function fetchPeople() {
+    fetch('/people')
+        .then(response => response.json())
+        .then(data => {
+            const peopleTable = document.getElementById('peopleTable').getElementsByTagName('tbody')[0];
+            peopleTable.innerHTML = '';
+            data.forEach(person => {
+                const row = peopleTable.insertRow();
+                row.insertCell(0).textContent = person.id;
+                row.insertCell(1).textContent = person.name;
+                row.insertCell(2).textContent = person.age;
+
+                const actionsCell = row.insertCell(3);
+                actionsCell.innerHTML = `
+                    <button onclick="updatePerson('${person.id}')">Atualizar</button>
+                    <button onclick="deletePerson('${person.id}')">Excluir</button>
+                `;
+            });
+        });
+}
+
+// Função para adicionar uma pessoa
+document.getElementById('addPersonForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const name = document.getElementById('name').value;
+    const age = document.getElementById('age').value;
+
+    fetch('/people', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, age })
+    }).then(() => {
+        fetchPeople();
+        this.reset();
+    });
+});
+
+// Função para atualizar uma pessoa
+function updatePerson(id) {
+    const newName = prompt("Digite o novo nome:");
+    const newAge = prompt("Digite a nova idade:");
+
+    if (newName && newAge) {
+        fetch(`/people/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: newName, age: parseInt(newAge) })
+        }).then(() => fetchPeople());
+    }
+}
+
+// Função para excluir uma pessoa
+function deletePerson(id) {
+    if (confirm("Tem certeza que deseja excluir esta pessoa?")) {
+        fetch(`/people/${id}`, {
+            method: 'DELETE'
+        }).then(() => fetchPeople());
+    }
+}
+
+// Carregar a lista de pessoas ao carregar a página
+window.onload = fetchPeople;
+</script>
+
+</body>
+</html>

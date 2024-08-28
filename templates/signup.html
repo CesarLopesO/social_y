@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Criar Conta</h2>
+        <form action="/signup" method="POST" enctype="multipart/form-data">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="profile_picture">Foto de Perfil:</label>
+            <input type="file" id="profile_picture" name="profile_picture" required>
+
+            <button type="submit">Criar Conta</button>
+        </form>
+        <p>Já tem uma conta? <a href="/login">Faça login aqui</a>.</p>
+    </div>
+</body>
+</html>
