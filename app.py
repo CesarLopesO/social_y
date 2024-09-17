@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, jsonify, flash
 import rethinkdb as r
 from werkzeug.utils import secure_filename
 import os
@@ -26,26 +26,95 @@ conn = rdb.connect("localhost", 28015)
 
 # Configuração inicial do banco de dados
 def setup_db():
-    if not rdb.db_list().contains("mydatabase").run(conn):
-        rdb.db_create("mydatabase").run(conn)
+    # Criação das tabelas
     if not rdb.db("mydatabase").table_list().contains("users").run(conn):
         rdb.db("mydatabase").table_create("users").run(conn)
     if not rdb.db("mydatabase").table_list().contains("posts").run(conn):
         rdb.db("mydatabase").table_create("posts").run(conn)
+    if not rdb.db("mydatabase").table_list().contains("departments").run(conn):
+        rdb.db("mydatabase").table_create("departments").run(conn)
+    if not rdb.db("mydatabase").table_list().contains("friend_requests").run(conn):
+        rdb.db("mydatabase").table_create("friend_requests").run(conn)
 
+    # Verifica se o admin já existe
     admin_exists = rdb.db("mydatabase").table("users").filter({"username": "adm"}).count().run(conn)
     if admin_exists == 0:
         # Criar o superusuário "adm"
         rdb.db("mydatabase").table("users").insert({
             "username": "adm",
             "password": "123",  # Em um aplicativo real, você deve usar hashing de senhas
-            "profile_picture": None,
-            "is_admin": True
+            "role": "admin",
+            "department": None,
+            "profile_pic": None,
+            "friends": []  # Lista de amigos
         }).run(conn)
+
         print("Superusuário 'adm' criado com sucesso.")
+@app.route('/add_friend', methods=['POST'])
+def add_friend():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    # Verificar se o usuário a ser adicionado existe
+    to_user = request.form['to_user']
+    user_cursor = rdb.db("mydatabase").table("users").filter({"username": to_user}).run(conn)
+    user = list(user_cursor)
+
+    if not user:
+        flash('Usuário não encontrado.')
+        return redirect(url_for('profile'))
+
+    # Criar solicitação de amizade
+    rdb.db("mydatabase").table("friend_requests").insert({
+        "from_user": session['username'],
+        "to_user": to_user,
+        "status": "pending"
+    }).run(conn)
+
+    flash(f'Solicitação de amizade enviada para {to_user}!')
+    return redirect(url_for('profile'))
 
 
-setup_db()
+
+@app.route('/accept_friend/<request_id>', methods=['POST'])
+def accept_friend(request_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    # Atualizar o status da solicitação de amizade para 'accepted'
+    rdb.db("mydatabase").table("friend_requests").get(request_id).update({
+        "status": "accepted"
+    }).run(conn)
+
+    # Adicionar os usuários à lista de amigos um do outro
+    friend_request = rdb.db("mydatabase").table("friend_requests").get(request_id).run(conn)
+    from_user = friend_request['from_user']
+    to_user = friend_request['to_user']
+
+    # Adicionar amigo para o usuário atual (to_user)
+    rdb.db("mydatabase").table("users").filter({"username": to_user}).update({
+        "friends": rdb.row["friends"].default([]).append(from_user)
+    }).run(conn)
+
+    # Adicionar amigo para o usuário que enviou a solicitação (from_user)
+    rdb.db("mydatabase").table("users").filter({"username": from_user}).update({
+        "friends": rdb.row["friends"].default([]).append(to_user)
+    }).run(conn)
+
+    flash(f'Você e {from_user} agora são amigos!')
+    return redirect(url_for('profile'))
+
+
+@app.route('/reject_friend/<request_id>', methods=['POST'])
+def reject_friend(request_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    # Excluir a solicitação de amizade
+    rdb.db("mydatabase").table("friend_requests").get(request_id).delete().run(conn)
+
+    flash('Solicitação de amizade recusada.')
+    return redirect(url_for('profile'))
 
 
 @app.route('/clear_database', methods=['POST'])
@@ -75,7 +144,7 @@ def clear_database():
     return redirect(url_for('admin'))
 
 
-@app.route('/admin')
+
 @app.route('/admin')
 def admin():
     try:
@@ -97,16 +166,18 @@ def admin():
             print("Acesso negado para o usuário:", user['username'])
             return "Acesso negado. Você não tem permissão para acessar esta página.", 403
 
-        # Obter todos os usuários e posts
+        # Obter todos os usuários, posts e departamentos
         users = list(rdb.db("mydatabase").table("users").run(conn))
         posts = list(rdb.db("mydatabase").table("posts").run(conn))
+        departments = list(rdb.db("mydatabase").table("departments").run(conn))  # Obter departamentos
 
         print("Usuário admin acessando a página de administração.")
-        return render_template('admin.html', users=users, posts=posts)
+        return render_template('admin.html', users=users, posts=posts, departments=departments)
 
     except Exception as e:
         print(f"Erro ao acessar a página de admin: {e}")
         return f"Ocorreu um erro ao tentar acessar a página de administração: {str(e)}", 500
+
 
 
 @app.route('/delete_user/<user_id>', methods=['POST'])
@@ -162,6 +233,32 @@ def home():
 def test():
     return render_template('login.html')
 
+def add_department(department_name):
+    rdb.db("mydatabase").table("departments").insert({
+        'name': department_name
+    }).run(conn)
+    print(f"Departamento {department_name} inserido com sucesso.")
+
+def get_departments():
+    return list(rdb.db("mydatabase").table("departments").run(conn))
+
+@app.route('/admin/departments', methods=['GET', 'POST'])
+def admin_departments():
+    if request.method == 'POST':
+        department_name = request.form['department']
+        add_department(department_name)
+        flash(f'Departamento {department_name} adicionado com sucesso!')
+
+    departments = get_departments()
+    return render_template('admin.html', departments=departments)
+@app.route('/delete_department/<department_id>', methods=['POST'])
+def delete_department(department_id):
+    rdb.db("mydatabase").table("departments").get(department_id).delete().run(conn)
+    flash('Departamento excluído com sucesso!')
+    return redirect(url_for('admin'))  # Certifique-se de que 'admin' é a função que renderiza a página 'admin.html'
+
+
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -190,46 +287,91 @@ def login():
     return render_template('login.html')
 
 
+import base64
+
+import base64
 
 @app.route('/signup', methods=['GET', 'POST'])
-@app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    departments = get_departments()  # Obtém todos os departamentos para exibir no dropdown
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        department = request.form['department']
+        role = request.form['role']  # Usuário pode escolher apenas entre 'employee' e 'manager'
+
+        # Upload da foto de perfil
+        if 'profile_picture' not in request.files:
+            flash('Nenhum arquivo de imagem enviado')
+            return redirect(request.url)
+
         file = request.files['profile_picture']
-        profile_picture = None
 
-        if file and allowed_file(file.filename):
-            profile_picture = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], profile_picture))
+        if file.filename == '':
+            flash('Nenhum arquivo selecionado')
+            return redirect(request.url)
 
-        # Verificar se o usuário já existe
-        existing_user_cursor = rdb.db("mydatabase").table("users").filter({"username": username}).run(conn)
-        if list(existing_user_cursor):
-            return "Usuário já existe. Tente outro nome."
+        if file:
+            # Converte a imagem para base64
+            image_data = file.read()  # Lê os dados do arquivo
+            encoded_image = base64.b64encode(image_data).decode('utf-8')  # Converte para base64
 
-        # Criar um novo usuário com foto de perfil
-        rdb.db("mydatabase").table("users").insert({
-            "username": username,
-            "password": password,
-            "profile_picture": profile_picture  # Armazena o caminho da foto de perfil
-        }).run(conn)
+            # Salvar o usuário no banco de dados com a imagem em base64 e cargo
+            rdb.db("mydatabase").table("users").insert({
+                'username': username,
+                'password': password,  # Deve ser hash em um app real
+                'department': department,
+                'role': role,  # Salva apenas 'employee' ou 'manager'
+                'profile_pic': encoded_image  # Salva a imagem como string base64
+            }).run(conn)
 
-        return redirect(url_for('login'))
+            flash('Conta criada com sucesso! Faça login para continuar.')
+            return redirect(url_for('login'))
 
-    return render_template('signup.html')
-
+    return render_template('signup.html', departments=departments)
 
 @app.route('/feed')
 def feed():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    # Ordenar os posts pelo campo "created_at" em ordem decrescente
-    posts = list(rdb.db("mydatabase").table("posts").order_by(rdb.desc("created_at")).run(conn))
+    # Recupera o usuário logado e seu departamento
+    user_cursor = rdb.db("mydatabase").table("users").filter({"username": session['username']}).run(conn)
+    user = list(user_cursor)[0]
+    user_department = user['department']  # Departamento do usuário logado
+    user_role = user['role']  # Cargo do usuário (employee, manager, admin)
+    friends = user.get("friends", [])  # Lista de amigos do usuário
+
+    # Se o usuário for gerente, ele vê todos os posts, independentemente do departamento
+    if user_role == 'manager':
+        posts = list(rdb.db("mydatabase").table("posts").order_by(rdb.desc("created_at")).run(conn))
+
+    # Se o usuário for funcionário, ele vê apenas posts de pessoas do mesmo departamento e dos amigos
+    elif user_role == 'employee':
+        # Posts do mesmo departamento
+        department_posts = list(rdb.db("mydatabase").table("posts").filter(
+            rdb.row['department'] == user_department
+        ).order_by(rdb.desc("created_at")).run(conn))
+
+        # Posts dos amigos
+        friend_posts = list(rdb.db("mydatabase").table("posts").filter(
+            lambda post: rdb.expr(friends).contains(post['username'])
+        ).order_by(rdb.desc("created_at")).run(conn))
+
+        # Combina posts do departamento e posts dos amigos
+        posts = department_posts + friend_posts
+
+        # Ordena por data de criação, do mais recente ao mais antigo
+        posts = sorted(posts, key=lambda p: p['created_at'], reverse=True)
 
     return render_template('feed.html', posts=posts)
+
+
+
+
+
+
 
 
 
@@ -239,48 +381,37 @@ def add_post():
     if 'username' in session:
         content = request.form['content']
         file = request.files['file']
-        filename = None
-        filetype = None
+        encoded_image = None
 
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file_extension = filename.rsplit('.', 1)[1].lower()
+            image_data = file.read()
+            encoded_image = base64.b64encode(image_data).decode('utf-8')
 
-            if file_extension in {'png', 'jpg', 'jpeg', 'gif'}:
-                filetype = 'image'
-            elif file_extension in {'mp4', 'mov', 'avi', 'mkv'}:
-                filetype = 'video'
-            else:
-                filetype = 'document'
-
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-        # Recuperar a foto de perfil do usuário
+        # Recuperar as informações do usuário logado
         user_cursor = rdb.db("mydatabase").table("users").filter({"username": session['username']}).run(conn)
         user = list(user_cursor)[0]
-        profile_picture = user.get('profile_picture', None)
+        user_department = user['department']  # Atribuir o departamento do usuário ao post
+        profile_picture = user.get('profile_pic', None)
 
+        # Dados do post
         post_data = {
             "username": session['username'],
-            "profile_picture": profile_picture,  # Armazena a foto de perfil no post
+            "profile_pic": profile_picture,
             "content": content,
             "likes": 0,
             "liked_by": [],
             "comments": [],
-            "created_at": datetime.now().isoformat()
+            "created_at": datetime.now().isoformat(),
+            "department": user_department  # Salva o departamento do usuário no post
         }
 
-        if filetype == 'image':
-            post_data['image'] = filename
-        elif filetype == 'video':
-            post_data['video'] = filename
-        elif filetype == 'document':
-            post_data['document'] = filename
+        if encoded_image:
+            post_data['image'] = encoded_image
 
+        # Inserir o post no banco de dados
         rdb.db("mydatabase").table("posts").insert(post_data).run(conn)
 
     return redirect(url_for('feed'))
-
 
 
 @app.route('/comment_post/<post_id>', methods=['POST'])
@@ -288,19 +419,20 @@ def comment_post(post_id):
     if 'username' in session:
         comment_content = request.form['comment']
 
-        # Recuperar a foto de perfil do usuário
+        # Recuperar a foto de perfil do usuário que está comentando
         user_cursor = rdb.db("mydatabase").table("users").filter({"username": session['username']}).run(conn)
         user = list(user_cursor)[0]
-        profile_picture = user.get('profile_picture', None)
+        profile_picture = user.get('profile_pic', None)  # Foto de perfil do usuário que comentou
 
+        # Cria o objeto do comentário
         comment = {
             "username": session['username'],
-            "profile_picture": profile_picture,
+            "profile_pic": profile_picture,  # Inclui a foto de perfil no comentário
             "content": comment_content,
             "created_at": datetime.now().isoformat()
         }
 
-        # Adicionar o comentário ao post correspondente
+        # Adiciona o comentário ao post correspondente
         rdb.db("mydatabase").table("posts").get(post_id).update({
             "comments": rdb.row["comments"].append(comment)
         }).run(conn)
@@ -308,6 +440,9 @@ def comment_post(post_id):
         # Renderizar apenas o novo comentário
         return render_template('comment_single.html', comment=comment)
 
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 
@@ -356,7 +491,15 @@ def profile():
     user_cursor = rdb.db("mydatabase").table("users").filter({"username": session['username']}).run(conn)
     user = list(user_cursor)[0]
 
-    return render_template('profile.html', user=user)
+    # Recuperar solicitações de amizade pendentes onde o usuário é o destinatário
+    friend_requests_cursor = rdb.db("mydatabase").table("friend_requests").filter(
+        {"to_user": session['username'], "status": "pending"}
+    ).run(conn)
+    friend_requests = list(friend_requests_cursor)
+
+    print("Solicitações de amizade pendentes:", friend_requests)  # Verificação
+
+    return render_template('profile.html', user=user, friend_requests=friend_requests)
 
 
 @app.route('/profile/<username>')

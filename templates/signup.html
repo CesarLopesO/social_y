@@ -9,18 +9,35 @@
 <body>
     <div class="container">
         <h2>Criar Conta</h2>
-        <form action="/signup" method="POST" enctype="multipart/form-data">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+<form action="/signup" method="POST" enctype="multipart/form-data">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
 
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
 
-            <label for="profile_picture">Foto de Perfil:</label>
-            <input type="file" id="profile_picture" name="profile_picture" required>
+    <label for="department">Selecione o Departamento:</label>
+    <select id="department" name="department" required>
+        {% for department in departments %}
+            <option value="{{ department.name }}">{{ department.name }}</option>
+        {% endfor %}
+    </select>
 
-            <button type="submit">Criar Conta</button>
-        </form>
+    <label for="role">Selecione o Cargo:</label>
+    <select id="role" name="role" required>
+        <option value="employee">Funcionário</option>
+        <option value="manager">Gerente</option>
+    </select>
+
+    <label for="profile_picture">Foto de Perfil:</label>
+    <input type="file" id="profile_picture" name="profile_picture" required>
+
+    <button type="submit">Criar Conta</button>
+</form>
+
+
+
+
         <p>Já tem uma conta? <a href="/login">Faça login aqui</a>.</p>
     </div>
 </body>

@@ -7,21 +7,22 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 
     <script>
-       function likePost(postId) {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/like_post/" + postId, true);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            const response = JSON.parse(xhr.responseText);
-            const button = document.getElementById("like-button-" + postId);
-            button.innerHTML = `<div>👍 ${response.likes}</div><div>${response.liked ? "Já curtiu" : "Curtir"}</div>`;
+        // Função para curtir um post
+        function likePost(postId) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/like_post/" + postId, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    const button = document.getElementById("like-button-" + postId);
+                    button.innerHTML = `<div>👍 ${response.likes}</div><div>${response.liked ? "" : "Curtir"}</div>`;
+                }
+            };
+            xhr.send();
         }
-    };
-    xhr.send();
-}
 
-
+        // Função para comentar em um post
         function commentPost(postId) {
             const comment = document.getElementById("comment-input-" + postId).value;
             const xhr = new XMLHttpRequest();
@@ -40,47 +41,42 @@
 <body>
     <div class="container">
         <h2>Feed</h2>
+        <a href="/logout">Logout</a>
         <a href="/profile">Meu Perfil</a>
+
+        <!-- Formulário para adicionar um novo post -->
         <form action="/add_post" method="POST" enctype="multipart/form-data">
             <textarea name="content" rows="4" cols="50" placeholder="O que você está pensando?" required></textarea>
             <input type="file" name="file">
             <button type="submit">Postar</button>
         </form>
+
         <h3>Posts Recentes</h3>
         {% for post in posts %}
             <div class="post">
                 <p>
-                    {% if post.profile_picture %}
-                        <img src="{{ url_for('uploaded_file', filename=post.profile_picture) }}" alt="Foto de Perfil" class="profile-picture">
+                    {% if post.profile_pic %}
+                        <img src="data:image/jpeg;base64,{{ post.profile_pic }}" alt="Foto de Perfil" class="profile-picture">
                     {% endif %}
                     <strong><a href="{{ url_for('view_profile', username=post.username) }}">{{ post.username }}</a></strong>: {{ post.content }}
                 </p>
+
+                <!-- Exibir a imagem do post, se houver -->
                 {% if post.image %}
-                    <img src="{{ url_for('uploaded_file', filename=post.image) }}" alt="Imagem do post" style="max-width: 100%;">
-                {% elif post.video %}
-                    <video controls style="max-width: 100%;">
-                        <source src="{{ url_for('uploaded_file', filename=post.video) }}" type="video/mp4">
-                        Seu navegador não suporta a exibição de vídeos.
-                    </video>
-                {% elif post.document %}
-                    <a href="{{ url_for('uploaded_file', filename=post.document) }}" download>{{ post.document }}</a>
-                                {% endif %}
-                                        <button id="like-button-{{ post.id }}" onclick="likePost('{{ post.id }}')" style="text-align: center;">
-                            <div>
-                                👍 {{ post.likes }}
-                            </div>
-                            <div>
-                                {% if session['username'] in post.liked_by %}
-                                    Já curtiu
-                                {% else %}
-                                {% endif %}
-                            </div>
-                        </button>
+                    <img src="data:image/jpeg;base64,{{ post.image }}" alt="Imagem do post" style="max-width: 100%;">
+                {% endif %}
 
-
-
-
-
+                <!-- Botão de Curtir -->
+                <button id="like-button-{{ post.id }}" onclick="likePost('{{ post.id }}')" style="text-align: center;">
+                    <div>👍 {{ post.likes }}</div>
+                    <div>
+                        {% if session['username'] in post.liked_by %}
+                            Já curtiu
+                        {% else %}
+                            Curtir
+                        {% endif %}
+                    </div>
+                </button>
 
                 <!-- Seção de Comentários -->
                 <div id="comments-section-{{ post.id }}" class="comments">
@@ -88,8 +84,10 @@
                         <h4>Comentários</h4>
                         {% for comment in post.comments %}
                             <p>
-                                {% if comment.profile_picture %}
-                                    <img src="{{ url_for('uploaded_file', filename=comment.profile_picture) }}" alt="Foto de Perfil" class="profile-picture">
+                                {% if comment.profile_pic %}
+                                    <img src="data:image/jpeg;base64,{{ comment.profile_pic }}" alt="Foto de Perfil" class="profile-picture">
+                                {% else %}
+                                    <p>Sem foto de perfil</p>
                                 {% endif %}
                                 <strong><a href="{{ url_for('view_profile', username=comment.username) }}">{{ comment.username }}</a></strong>: {{ comment.content }}
                             </p>
@@ -103,7 +101,8 @@
             </div>
             <hr style="border: 1px solid #ccc; margin: 20px 0;">
         {% endfor %}
-        <a href="/logout">Logout</a>
+
+
     </div>
 </body>
 </html>
