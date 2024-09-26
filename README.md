@@ -1,74 +1,69 @@
 Social Y
+Idealização do Projeto
 
-Social Y é uma rede social desenvolvida com o framework Flask e o banco de dados RethinkDB. Este projeto oferece funcionalidades de cadastro de usuários, envio de solicitações de amizade, compartilhamento de posts com suporte para upload de arquivos, e administração de usuários e departamentos.
-Funcionalidades Principais
+O Social Y é uma rede social corporativa desenvolvida em Flask e RethinkDB. Foi criada para promover a interação entre funcionários de diferentes departamentos de uma empresa, com funcionalidades de amizade, postagens e upload de arquivos. A plataforma possui uma hierarquia de usuários, composta por Administradores, Gerentes e Funcionários, onde cada nível tem permissões e visibilidade distintas.
+Funcionalidades Principais:
 
-    Cadastro de Usuários: Permite que novos usuários se registrem com seus dados e departamentos.
-    Sistema de Amizades: Adicione amigos pelo nome de usuário e envie solicitações de amizade.
-    Posts: Os usuários podem compartilhar textos e fazer upload de arquivos, como imagens, que são codificadas em base64 e armazenadas no banco de dados.
-    Departamentos: Os usuários são organizados por departamentos, e as permissões de visualização de posts são determinadas pela hierarquia de departamentos.
-    Gerenciamento de Departamentos: Administradores podem adicionar novos departamentos diretamente pelo painel de administração.
-    Hierarquia de Usuários:
-        Administrador: Pode gerenciar todos os aspectos da rede social, incluindo usuários e departamentos.
-        Gerente: Pode visualizar posts de todos os funcionários sob sua gerência e de outros departamentos.
-        Funcionários: Podem visualizar posts apenas de usuários do mesmo departamento e de seu gerente.
-    Sistema de Exclusão Mútua: Gerenciamento eficiente de acessos simultâneos em um arquivo central.
+    Cadastro de usuários: Possibilidade de cadastro de usuários, com seleção de departamentos.
+    Sistema de amizade: Adição e aceitação de solicitações de amizade entre usuários.
+    Postagens com upload de arquivos: Criação de posts e envio de arquivos, com imagens codificadas em base64.
+    Hierarquia de acesso: Três níveis de usuários:
+        Administrador: Pode criar departamentos e gerenciar usuários.
+        Gerente: Pode ver as postagens de todos os funcionários de seu departamento.
+        Funcionário: Pode ver apenas as postagens dos colegas de departamento e do gerente.
+    Departamentos: Usuários pertencem a diferentes departamentos, influenciando a interação e visibilidade de posts.
 
-Estrutura do Banco de Dados
+Tecnologias Utilizadas:
+Back-end:
 
-A Social Y utiliza o RethinkDB como banco de dados NoSQL, onde os dados são organizados em "tabelas". Alguns exemplos de tabelas utilizadas no projeto incluem:
+    Flask: Framework para criação da API e gerenciamento de rotas.
+    RethinkDB: Banco de dados NoSQL utilizado para armazenar as informações de usuários, posts, e pedidos de amizade.
 
-    users: Armazena informações dos usuários, como nome, departamento e amigos.
-    posts: Armazena os posts, incluindo os arquivos codificados em base64.
-    friend_requests: Armazena as solicitações de amizade pendentes entre os usuários.
-    departments: Armazena a estrutura hierárquica dos departamentos.
+Front-end:
 
-Tecnologias Utilizadas
-
-    Backend: Flask (Python)
-    Banco de Dados: RethinkDB
-    Frontend: HTML5, CSS3, JavaScript
-    Outras: Base64 (para codificação de arquivos de imagem), Sistema de Exclusão Mútua Distribuído
+    HTML/CSS: Para estruturar e estilizar as páginas da aplicação.
+    JavaScript: Utilizado para interações dinâmicas e manipulação de DOM.
+    Bootstrap: Framework CSS para design responsivo.
+    jQuery: Para chamadas AJAX e interações do front-end.
 
 Como Executar o Projeto
+Pré-requisitos:
 
-    Clonar o repositório:
+    Python 3.x
+    Pip (gerenciador de pacotes do Python)
+    RethinkDB instalado localmente
+
+Passo a Passo para Execução:
+
+    Clone o projeto:
 
     bash
 
-git clone https://github.com/seu-usuario/social-y.git
-cd social-y
+git clone git@github.com:CesarLopesO/social_y.git
+cd social_y
 
-Instalar dependências:
+Crie e ative o ambiente virtual:
 
-Certifique-se de ter o Python e o RethinkDB instalados em sua máquina. Depois, instale as dependências do projeto:
+bash
+
+python3 -m venv venv
+source venv/bin/activate  # No Windows, use venv\Scripts\activate
+
+Instale as dependências:
 
 bash
 
 pip install -r requirements.txt
 
-Iniciar o RethinkDB:
+Configure o banco de dados RethinkDB:
 
-Inicie o servidor do RethinkDB:
+    Certifique-se de que o RethinkDB esteja rodando localmente:
 
-bash
+    bash
 
-rethinkdb
+    rethinkdb
 
-O servidor será executado por padrão em http://localhost:8080.
-
-Configurar as tabelas:
-
-No console do RethinkDB, execute os seguintes comandos para configurar as tabelas:
-
-javascript
-
-r.db('test').tableCreate('users');
-r.db('test').tableCreate('posts');
-r.db('test').tableCreate('friend_requests');
-r.db('test').tableCreate('departments');
-
-Executar o projeto:
+    As tabelas necessárias para o projeto serão criadas automaticamente ao rodar a aplicação, pois o setup do banco de dados está integrado no arquivo app.py.
 
 Execute o servidor Flask:
 
@@ -76,4 +71,6 @@ bash
 
 flask run
 
-A aplicação estará disponível em http://localhost:5000.
+Acesse a aplicação:
+
+No navegador, vá para http://localhost:5000 para acessar o Social Y.
