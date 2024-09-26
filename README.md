@@ -26,7 +26,8 @@ Front-end:
     Bootstrap: Framework CSS para design responsivo.
     jQuery: Para chamadas AJAX e interações do front-end.
 
-Como Executar o Projeto
+Como Executar o Projeto 
+
 1-Pré-requisitos:
 
     Python 3.x
@@ -46,12 +47,12 @@ Clone o projeto:
     python3 -m venv venv
     source venv/bin/activate  # No Windows, use venv\Scripts\activate
 
-4- Instale as dependências:
+4-Instale as dependências:
 
 
     pip install -r requirements.txt
 
-5- Configure o banco de dados RethinkDB:
+5-Configure o banco de dados RethinkDB:
 
 Certifique-se de que o RethinkDB esteja rodando localmente:
 
@@ -60,10 +61,10 @@ Certifique-se de que o RethinkDB esteja rodando localmente:
 
 As tabelas necessárias para o projeto serão criadas automaticamente ao rodar a aplicação, pois o setup do banco de dados está integrado no arquivo app.py.
 
-6- Execute o servidor Flask:
+6-Execute o servidor Flask:
 
     python3 app.py
 
-7- Acesse a aplicação:
+7-Acesse a aplicação:
 
 No navegador, vá para http://localhost:5000 para acessar o Social Y.
