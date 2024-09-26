@@ -46,12 +46,12 @@ Clone o projeto:
     python3 -m venv venv
     source venv/bin/activate  # No Windows, use venv\Scripts\activate
 
-4-Instale as dependências:
+4- Instale as dependências:
 
 
     pip install -r requirements.txt
 
-5-Configure o banco de dados RethinkDB:
+5- Configure o banco de dados RethinkDB:
 
 Certifique-se de que o RethinkDB esteja rodando localmente:
 
@@ -64,6 +64,6 @@ Execute o servidor Flask:
 
     python3 app.py
 
-Acesse a aplicação:
+6- Acesse a aplicação:
 
 No navegador, vá para http://localhost:5000 para acessar o Social Y.
