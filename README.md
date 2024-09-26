@@ -27,49 +27,42 @@ Front-end:
     jQuery: Para chamadas AJAX e interações do front-end.
 
 Como Executar o Projeto
-Pré-requisitos:
+1-Pré-requisitos:
 
     Python 3.x
     Pip (gerenciador de pacotes do Python)
     RethinkDB instalado localmente
 
-Passo a Passo para Execução:
+2-Passo a Passo para Execução
 
-    Clone o projeto:
+Clone o projeto:
 
-    bash
+    git clone git@github.com:CesarLopesO/social_y.git
+    cd social_y
 
-git clone git@github.com:CesarLopesO/social_y.git
-cd social_y
+3-Crie e ative o ambiente virtual:
 
-Crie e ative o ambiente virtual:
 
-bash
+    python3 -m venv venv
+    source venv/bin/activate  # No Windows, use venv\Scripts\activate
 
-python3 -m venv venv
-source venv/bin/activate  # No Windows, use venv\Scripts\activate
+4-Instale as dependências:
 
-Instale as dependências:
 
-bash
+    pip install -r requirements.txt
 
-pip install -r requirements.txt
+5-Configure o banco de dados RethinkDB:
 
-Configure o banco de dados RethinkDB:
+Certifique-se de que o RethinkDB esteja rodando localmente:
 
-    Certifique-se de que o RethinkDB esteja rodando localmente:
-
-    bash
 
     rethinkdb
 
-    As tabelas necessárias para o projeto serão criadas automaticamente ao rodar a aplicação, pois o setup do banco de dados está integrado no arquivo app.py.
+As tabelas necessárias para o projeto serão criadas automaticamente ao rodar a aplicação, pois o setup do banco de dados está integrado no arquivo app.py.
 
 Execute o servidor Flask:
 
-bash
-
-flask run
+    python3 app.py
 
 Acesse a aplicação:
 
