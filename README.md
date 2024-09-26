@@ -60,10 +60,10 @@ Certifique-se de que o RethinkDB esteja rodando localmente:
 
 As tabelas necessárias para o projeto serão criadas automaticamente ao rodar a aplicação, pois o setup do banco de dados está integrado no arquivo app.py.
 
-Execute o servidor Flask:
+6- Execute o servidor Flask:
 
     python3 app.py
 
-6- Acesse a aplicação:
+7- Acesse a aplicação:
 
 No navegador, vá para http://localhost:5000 para acessar o Social Y.
