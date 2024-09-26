@@ -5,65 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feed</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
-    <script>
-        // Função para curtir um post
-        function likePost(postId) {
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "/like_post/" + postId, true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    const button = document.getElementById("like-button-" + postId);
-                    button.innerHTML = `<div>👍 ${response.likes}</div><div>${response.liked ? "" : "Curtir"}</div>`;
-                }
-            };
-            xhr.send();
+    <link rel="stylesheet" href="{{ url_for('static', filename='feed.css') }}">
+    <style>
+        .container-feed {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        // Função para comentar em um post
-        function commentPost(postId) {
-            const comment = document.getElementById("comment-input-" + postId).value;
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "/comment_post/" + postId, true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    document.getElementById("comments-section-" + postId).innerHTML += xhr.responseText;
-                    document.getElementById("comment-input-" + postId).value = "";
-                }
-            };
-            xhr.send("comment=" + encodeURIComponent(comment));
+        .form-post {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
         }
-    </script>
+
+        .form-post textarea {
+            margin-bottom: 10px;
+        }
+
+        .form-post input[type="file"] {
+            margin-bottom: 10px;
+        }
+
+        .form-post button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .form-post button:hover {
+            background-color: #0056b3;
+        }
+
+        .container-feed h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Feed</h2>
-        <a href="/logout">Logout</a>
-        <a href="/profile">Meu Perfil</a>
+    <nav>
+        <div>
+            <img src="../static/img/social y feed.png" alt="" class="social-y">
+        </div>
+    </nav>
 
-        <!-- Formulário para adicionar um novo post -->
-        <form action="/add_post" method="POST" enctype="multipart/form-data">
-            <textarea name="content" rows="4" cols="50" placeholder="O que você está pensando?" required></textarea>
-            <input type="file" name="file">
-            <button type="submit">Postar</button>
-        </form>
+    <div class="canto-esquerdo">
+        {% if user %}
+            <img src="data:image/jpeg;base64,{{ user.profile_pic }}" alt="Foto de Perfil" class="profile-picture" style="width: 150px; height: 150px; margin-top: 10px;">
+        {% endif %}
+        <a href="/profile" style="position: absolute; top: 180px; left: 10%; color: white;">Meu Perfil</a>
+        <a href="/logout" style="position: absolute; top: 220px; left: 10%; color: white;">Sair</a>
+    </div>
 
-        <h3>Posts Recentes</h3>
+    <div class="canto-direito">
+        <!-- Lista de amigos -->
+        <div class="friends-section">
+            <h3>Amigos</h3>
+            <ul>
+                {% for friend in user.friends %}
+                    <li style="pointer-events: none;">{{ friend }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="container-feed">
+        <h2>Publicar</h2>
+        <center>
+            <!-- Formulário para adicionar um novo post -->
+            <form action="/add_post" method="POST" enctype="multipart/form-data" class="form-post">
+                <textarea name="content" rows="4" cols="50" placeholder="O que você está pensando?" required></textarea>
+                <input type="file" name="file">
+                <button type="submit">Postar</button>
+            </form>
+        </center>
+    </div>
+
+    <div>
+        <hr style="width: 70%;">
+        <h3 style="text-align: center; font-size: 30px;">Posts Recentes</h3>
+
         {% for post in posts %}
+        <center>
             <div class="post">
+
                 <p>
                     {% if post.profile_pic %}
-                        <img src="data:image/jpeg;base64,{{ post.profile_pic }}" alt="Foto de Perfil" class="profile-picture">
+                        <img src="data:image/jpeg;base64,{{ post.profile_pic }}" alt="Foto de Perfil" class="profile-picture" style="width: 80px; height: 80px;">
                     {% endif %}
                     <strong><a href="{{ url_for('view_profile', username=post.username) }}">{{ post.username }}</a></strong>: {{ post.content }}
                 </p>
 
-                <!-- Exibir a imagem do post, se houver -->
-                {% if post.image %}
-                    <img src="data:image/jpeg;base64,{{ post.image }}" alt="Imagem do post" style="max-width: 100%;">
+                <!-- Exibir a mídia do post (imagem ou vídeo) -->
+                {% if post.file_url %}
+                    {% if post.file_url.endswith(('mp4', 'mov', 'avi', 'mkv')) %}
+                        <video width="320" height="240" controls>
+                            <source src="{{ post.file_url }}" type="video/mp4">
+                            Seu navegador não suporta a tag de vídeo.
+                        </video>
+                    {% else %}
+                        <img src="{{ post.file_url }}" alt="Imagem do post" style="max-width: 100%;">
+                    {% endif %}
                 {% endif %}
 
                 <!-- Botão de Curtir -->
@@ -85,7 +134,7 @@
                         {% for comment in post.comments %}
                             <p>
                                 {% if comment.profile_pic %}
-                                    <img src="data:image/jpeg;base64,{{ comment.profile_pic }}" alt="Foto de Perfil" class="profile-picture">
+                                    <img src="data:image/jpeg;base64,{{ comment.profile_pic }}" alt="Foto de Perfil" class="profile-picture" style="width: 50px; height: 50px;">
                                 {% else %}
                                     <p>Sem foto de perfil</p>
                                 {% endif %}
@@ -99,10 +148,8 @@
                 <textarea id="comment-input-{{ post.id }}" rows="2" cols="50" placeholder="Adicione um comentário..." required></textarea>
                 <button onclick="commentPost('{{ post.id }}')">Comentar</button>
             </div>
-            <hr style="border: 1px solid #ccc; margin: 20px 0;">
+        </center>
         {% endfor %}
-
-
     </div>
 </body>
 </html>

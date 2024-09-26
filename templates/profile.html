@@ -1,75 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='feed.css') }}">
+
 </head>
+
 <body>
-    <div class="container">
-        <h2>Perfil de {{ user.username }}</h2>
+    <nav>
+        <div>
+            <img src="../static/img/social y feed.png" alt="" class="social-y">
+            <!---<input type="text" class="pesquisa">--->
+        </div>
+    </nav><br><br><br>
+    <center>
+        <div class="container-perfil" style="margin-top: 30px; margin-bottom: 80px;">
 
-        <!-- Exibe a foto de perfil -->
-        {% if user.profile_pic %}
-            <img src="data:image/jpeg;base64,{{ user.profile_pic }}" alt="Foto de Perfil" class="profile-picture">
-        {% endif %}
+            <div class="infos">
+                <h2>Perfil de {{ user.username }}</h2>
 
-        <p>Departamento: {{ user.department }}</p>
-
-        <!-- Lista de amigos -->
-        <div class="friends-section">
-            <h3>Amigos</h3>
-            <ul>
-                {% for friend in user.friends %}
+                {% if user.profile_pic %}
+                <img src="data:image/jpeg;base64,{{ user.profile_pic }}" alt="Foto de Perfil" class="profile-picture" style="width: 100px; height: 100px;">
+                {% endif %}
+    
+                <p>Departamento: {{ user.department }}</p>
+            </div>
+            
+            <hr>
+            <!-- Lista de amigos -->
+            <div class="lista-amigos">
+                <h3>Amigos</h3>
+                <ul>
+                    {% for friend in user.friends %}
                     <li>{{ friend }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+                    {% endfor %}
+                </ul>
+            </div>
 
-        <!-- Solicitações de amizade pendentes -->
-       <div class="friend-requests">
+            <!-- Solicitações de amizade pendentes -->
+            <div class="solicitacoes">
 
-<h3>Solicitações de Amizade</h3>
-<ul>
-    {% if friend_requests %}
-        {% for request in friend_requests %}
-            <li>
-                {{ request.from_user }} enviou uma solicitação de amizade.
-                <form action="/accept_friend/{{ request.id }}" method="POST" style="display:inline;">
-                    <button type="submit">Aceitar</button>
+                <h3>Solicitações de Amizade</h3>
+                <ul>
+                    {% if friend_requests %}
+                    {% for request in friend_requests %}
+                    <li>
+                        {{ request.from_user }} enviou uma solicitação de amizade.
+                        <form action="/accept_friend/{{ request.id }}" method="POST" style="background-color:cornflowerblue;display:inline;">
+                            <button type="submit">Aceitar</button>
+                        </form>
+                        <form action="/reject_friend/{{ request.id }}" method="POST" style="background-color:cornflowerblue;display:inline;">
+                            <button type="submit">Recusar</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <li>Sem novas solicitações de amizade.</li>
+                    {% endif %}
+                </ul>
+
+            </div>
+
+
+            <!-- Formulário para adicionar amigos -->
+            <div class="adicionar-amigos">
+                <h3>Adicionar Amigo</h3>
+                <form action="/add_friend" method="POST">
+                    <label for="to_user">Nome de Usuário:</label><br>
+                    <input type="text" id="to_user" name="to_user" style="width: auto;" placeholder="Usuário..." required><br>
+                    <button type="submit" style="width: auto; background-color: white; color: black;">Adicionar Amigo</button>
                 </form>
-                <form action="/reject_friend/{{ request.id }}" method="POST" style="display:inline;">
-                    <button type="submit">Recusar</button>
-                </form>
-            </li>
-        {% endfor %}
-    {% else %}
-        <li>Sem novas solicitações de amizade.</li>
-    {% endif %}
-</ul>
+            </div>
 
-
-
-
-</div>
-
-
-        <!-- Formulário para adicionar amigos -->
-        <div class="add-friend-section">
-            <h3>Adicionar Amigo</h3>
-            <form action="/add_friend" method="POST">
-    <label for="to_user">Nome de Usuário:</label>
-    <input type="text" id="to_user" name="to_user" required>
-    <button type="submit">Adicionar Amigo</button>
-</form>
-
-
-
-
+            <a href="/feed">Voltar ao Feed</a>
         </div>
+    </center>
 
-        <a href="/feed">Voltar ao Feed</a>
-    </div>
 </body>
+
 </html>

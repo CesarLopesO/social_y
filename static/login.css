@@ -1,0 +1,13 @@
+.y {
+    width: 500px;
+    position: fixed;
+    z-index: 1;
+}
+
+.social-y{
+    width: 250px;
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, 0);
+}

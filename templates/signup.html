@@ -5,38 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Criar Conta</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+    <style>
+        /* Adicionar estilo para centralizar e ajustar o botão */
+        form {
+            text-align: center;
+        }
+
+        button {
+            margin-left: 18px; /* Ajuste a margem para mover o botão para a direita */
+            padding: 10px 20px; /* Adicione um pouco de preenchimento */
+            font-size: 16px; /* Aumente o tamanho da fonte para melhor legibilidade */
+            background-color: #007bff; /* Cor de fundo do botão */
+            color: white; /* Cor do texto */
+            border: none;
+            border-radius: 5px; /* Bordas arredondadas */
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3; /* Cor ao passar o mouse */
+        }
+    </style>
 </head>
 <body>
+    <img src="../static/img/Y.png" alt="" class="y">
+
     <div class="container">
+        <img src="../static/img/social y.png" alt="" class="social-y">
         <h2>Criar Conta</h2>
-<form action="/signup" method="POST" enctype="multipart/form-data">
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required>
 
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required>
+        <form action="/signup" method="POST" enctype="multipart/form-data">
+            <label for="username">Nome de usuário:</label>
+            <input type="text" id="username" name="username" required>
 
-    <label for="department">Selecione o Departamento:</label>
-    <select id="department" name="department" required>
-        {% for department in departments %}
-            <option value="{{ department.name }}">{{ department.name }}</option>
-        {% endfor %}
-    </select>
+            <label for="password">Senha:</label>
+            <input type="password" id="password" name="password" required>
 
-    <label for="role">Selecione o Cargo:</label>
-    <select id="role" name="role" required>
-        <option value="employee">Funcionário</option>
-        <option value="manager">Gerente</option>
-    </select>
+            <label for="department">Selecione o Departamento:</label>
+            <select id="department" name="department" required>
+                {% for department in departments %}
+                    <option value="{{ department.name }}">{{ department.name }}</option>
+                {% endfor %}
+            </select>
 
-    <label for="profile_picture">Foto de Perfil:</label>
-    <input type="file" id="profile_picture" name="profile_picture" required>
+            <label for="role">Selecione o Cargo:</label>
+            <select id="role" name="role" required>
+                <option value="employee">Funcionário</option>
+                <option value="manager">Gerente</option>
+            </select>
 
-    <button type="submit">Criar Conta</button>
-</form>
+            <label for="profile_picture">Foto de Perfil:</label>
+            <input type="file" id="profile_picture" name="profile_picture" style="margin-left: 10px;" required>
 
-
-
+            <button type="submit">Criar Conta</button>
+        </form>
 
         <p>Já tem uma conta? <a href="/login">Faça login aqui</a>.</p>
     </div>

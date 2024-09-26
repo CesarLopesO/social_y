@@ -1,0 +1,33 @@
+.container-perfil {
+    width: 100%;
+    max-width: 70%;
+    margin: 150px auto;
+    background: white;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    z-index: 2;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.lista-amigos {
+    color: white;
+    padding: 20px;
+    left: 20%;
+    position: absolute;
+}
+
+.solicitacoes {
+    padding: 20px;
+    right: 20%;
+    position: absolute;
+    color: white;
+}
+
+.adicionar-amigos{
+    padding: 20px;
+    background-color: #0779B8;
+    border-radius: 20px;
+    color: white;
+    margin-bottom: 20px;
+}

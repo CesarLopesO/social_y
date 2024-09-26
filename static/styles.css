@@ -1,9 +1,10 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
 }
+
 .profile-picture {
     width: 100px;
     height: 100px;
@@ -11,14 +12,15 @@ body {
     object-fit: cover;
 }
 
-
 .container {
     width: 100%;
     max-width: 400px;
-    margin: 50px auto;
+    margin: 150px auto;
     background: white;
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    z-index: 2;
 }
 
 h2 {
@@ -28,12 +30,13 @@ h2 {
 
 label {
     display: block;
+    margin-top: 10px;
     margin-bottom: 5px;
     font-weight: bold;
 }
 
 input[type="text"], input[type="password"] {
-    width: 100%;
+    width: 90%;
     padding: 10px;
     margin-bottom: 20px;
     border: 1px solid #ddd;
@@ -41,9 +44,11 @@ input[type="text"], input[type="password"] {
 }
 
 button {
-    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 50%;
     padding: 10px;
-    background-color: #4CAF50;
+    background-color: #0779B8;
     color: white;
     border: none;
     border-radius: 4px;
@@ -51,7 +56,7 @@ button {
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #193c4f;
 }
 
 p {
@@ -59,7 +64,8 @@ p {
 }
 
 a {
-    color: #4CAF50;
+    font-size: large;
+    color: #0779B8;
     text-decoration: none;
 }
 
@@ -76,3 +82,8 @@ a:hover {
         .post {
             margin-bottom: 30px;
         }
+
+select{
+    width: 90%;
+    padding: 10px;
+}

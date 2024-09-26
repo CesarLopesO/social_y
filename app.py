@@ -50,6 +50,7 @@ def setup_db():
         }).run(conn)
 
         print("Superusuário 'adm' criado com sucesso.")
+
 @app.route('/add_friend', methods=['POST'])
 def add_friend():
     if 'username' not in session:
@@ -365,15 +366,12 @@ def feed():
         # Ordena por data de criação, do mais recente ao mais antigo
         posts = sorted(posts, key=lambda p: p['created_at'], reverse=True)
 
-    return render_template('feed.html', posts=posts)
+    user_cursor = rdb.db("mydatabase").table("users").filter({"username": session['username']}).run(conn)
+    user = list(user_cursor)[0]
 
 
 
-
-
-
-
-
+    return render_template('feed.html', posts=posts, user=user)
 
 
 @app.route('/add_post', methods=['POST'])
@@ -381,11 +379,12 @@ def add_post():
     if 'username' in session:
         content = request.form['content']
         file = request.files['file']
-        encoded_image = None
+        file_url = None
 
         if file and allowed_file(file.filename):
-            image_data = file.read()
-            encoded_image = base64.b64encode(image_data).decode('utf-8')
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file_url = url_for('uploaded_file', filename=filename)
 
         # Recuperar as informações do usuário logado
         user_cursor = rdb.db("mydatabase").table("users").filter({"username": session['username']}).run(conn)
@@ -402,16 +401,15 @@ def add_post():
             "liked_by": [],
             "comments": [],
             "created_at": datetime.now().isoformat(),
-            "department": user_department  # Salva o departamento do usuário no post
+            "department": user_department,  # Salva o departamento do usuário no post
+            "file_url": file_url  # Salva a URL do arquivo (imagem ou vídeo)
         }
-
-        if encoded_image:
-            post_data['image'] = encoded_image
 
         # Inserir o post no banco de dados
         rdb.db("mydatabase").table("posts").insert(post_data).run(conn)
 
     return redirect(url_for('feed'))
+
 
 
 @app.route('/comment_post/<post_id>', methods=['POST'])
@@ -475,6 +473,7 @@ def like_post(post_id):
         # Retornar o número atualizado de curtidas
         post = rdb.db("mydatabase").table("posts").get(post_id).run(conn)
         return jsonify({"likes": post["likes"], "liked": liked})
+
 
 @app.route('/logout')
 def logout():
